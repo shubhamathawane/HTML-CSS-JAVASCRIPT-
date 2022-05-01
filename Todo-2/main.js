@@ -1,88 +1,82 @@
-let addbtn = document.querySelector("#addButton");
-let currTaskInput = document.querySelector("#inputtask");
-let tasks = document.querySelector(".tasks");
-
-let todos = [];
-
-getFromLocalStorage();
-
-addbtn.addEventListener("click", (e) => {
-  if (tasks.children.classNeme == "emptyMsg") {
-    tasks.children.remove();
-  }
-  const todo = {
-    id: Date.now(),
-    name: currTaskInput.value
-  };
-  todos.push(todo);
-  addToLocalStorage(todos);
-  currTaskInput.value = " ";
-});
-
-function addToLocalStorage(todos) {
-  localStorage.setItem("todos", JSON.stringify(todos));
-  renderTodos(todos);
+function getHistory(){
+   return document.getElementById("history-value").innerText;
+}
+function printHistory(num){
+    document.getElementById("history-value").innerText = num;
+}
+function getOutput(){
+    return document.getElementById("output-value").innerText;
+}
+function printOutput(num){
+    if(num==""){
+        document.getElementById("output-value").innerText = num
+    }else{
+        document.getElementById('output-value').innerText = getFormatedNumber(num);
+    }
 }
 
-function renderTodos(todos) {
-  tasks.innerHTML = "";
-
-  if (todos.length == 0) {
-    tasks.innerHTML = `<h3 class="emptyMsg">No tasks here.</h3>`;
-  }
-
-  todos.forEach(function (item) {
-    let newdiv = document.createElement("div");
-    newdiv.setAttribute("class", "item");
-    newdiv.setAttribute("data-key", item.id);
-    newdiv.className = "task list-group-item d-flex jsutify-content-between";
-    newdiv.innerHTML = `<span class="flex-grow-1">${item.name}</span>
-        <button class="edit" onclick='editTask(this)'>Edit</button>
-        <button class="delete" onclick='deleteTask(this)'> Delete</button>`;
-
-    tasks.appendChild(newdiv);
-  });
+function getFormatedNumber(num){
+    if (num=="-"){
+        return "";
+    }
+    var n = Number(num);
+    var value = n.toLocaleString('en');
+    return value
 }
 
-function getFromLocalStorage() {
-  const reference = localStorage.getItem("todos");
-  if (reference) {
-    todos = JSON.parse(reference);
-    renderTodos(todos);
-  }
+function reverseNumberFormate(num){
+    return Number(num.replace(/,/g,''));
 }
 
-function deleteTask(e) {
-  let id = e.parentElement.getAttribute("data-key");
-  todos = todos.filter(function (item) {
-    return item.id != id;
-  });
-  addToLocalStorage(todos);
+var operator = document.getElementsByClassName("operator");
+for(var i = 0;i<operator.length;i++){
+    operator[i].addEventListener('click', function(){
+        if(this.id=="clear"){ 
+            printHistory("");
+            printOutput("");
+        }
+        else if(this.id=="backspace"){
+            var output = reverseNumberFormate(getOutput()).toString();
+            if(output){
+                output = output.substr(0, output.length-1)
+                printOutput(output)
+            }
+        }else{
+            var output = getOutput();
+            var history = getHistory();
+            if(output=="" && history!=""){
+                if(isNaN(history[history.length-1])){
+                    history = history.substr(0, history.length-1)
+                }
+            }
+            if(output!="" || history!=""){
+                // Conditional operator
+                output = output=="" ? output: reverseNumberFormate(output)
+                history=history+output;
+                if(this.id == "="){
+                    var result = eval(history);
+                    printOutput(result);
+                    printHistory("");
+                }else{
+                    history=history+this.id;
+                    printHistory(history)
+                    printOutput("");
+                }
+            }
+        }
+    })
+}
+var number = document.getElementsByClassName("number");
+for(var i = 0;i<number.length;i++){
+    number[i].addEventListener('click', function(){
+        var output = reverseNumberFormate(getOutput())
+        if(output!=NaN){
+            output=output+this.id;
+            printOutput(output);
+        }
+    })
 }
 
-function editTask(e) {
-  if ((e.textContent = "Done")) {
-    e.textContent = "Edit";
-    let currChapterName = e.previousElementSibling.value;
-    let currHeading = document.createElement("span");
-    currHeading.className = "flex-grow-1";
-    currHeading.textContent = currChapterName;
-    e.parentElement.replaceChild(currHeading, e.previousElementSibling);
 
-    let idd = currHeading.parentElement.getAttribute("data-key");
-    todos.forEach((task) => {
-      if (idd == task.id) {
-        task.name = currChapterName;
-      }
-    });
-    addToLocalStorage(todos);
-  } else {
-    e.textContent = "Done";
-    let currChapterName = e.previousElementSibling.textContent;
-    let currInput = document.createElement("input");
-    currInput.type = "text";
-    currInput.placeholder = "Enter Task";
-    currInput.value = currChapterName;
-    e.parentElement.replaceChild(currInput, e.previousElementSibling);
-  }
-}
+
+
